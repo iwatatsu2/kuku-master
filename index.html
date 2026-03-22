@@ -365,12 +365,14 @@ function goLearn(dan){
     const m=getMastery(dan,b);
     const row=document.createElement('div');
     row.className='learn-row';
+    const g=goro(dan,b);
     row.innerHTML=`
-      <div>
+      <div style="flex:1">
         <div class="learn-q">${dan} × ${b} = <span class="learn-a">${dan*b}</span></div>
-        <div class="mbar"><div class="mbar-fill" style="width:${m}%;background:${masteryColor(m)}"></div></div>
+        <div style="font-size:11px;color:#a78bfa;font-weight:bold;margin-top:2px;letter-spacing:.5px">🎵 ${g}</div>
+        <div class="mbar" style="margin-top:3px"><div class="mbar-fill" style="width:${m}%;background:${masteryColor(m)}"></div></div>
       </div>
-      <div style="font-size:10px;color:${masteryColor(m)};text-align:right;min-width:52px">${masteryLabel(m)}</div>`;
+      <div style="font-size:10px;color:${masteryColor(m)};text-align:right;min-width:48px;padding-left:8px">${masteryLabel(m)}</div>`;
     tbl.appendChild(row);
   }
   document.getElementById('l-start-btn').onclick=()=>startGame(dan,'normal');
@@ -404,7 +406,7 @@ function nextQ(){
   G.answered=false;G.tLeft=TLIM;G.t0=Date.now();
   document.getElementById('g-qnum').textContent=G.qi+1;
   document.getElementById('g-q').textContent=`${q.a} × ${q.b} = ?`;
-  document.getElementById('g-hint').innerHTML='';
+  document.getElementById('g-hint').innerHTML=`<span style="font-size:11px;color:rgba(167,139,250,.5);letter-spacing:.5px">🎵 ${goro(q.a,q.b)}</span>`;
 
   const cs=genChoices(q.ans);
   const wrap=document.getElementById('choices');
@@ -435,9 +437,9 @@ function timeUp(){
     if(+b.textContent===q.ans)b.classList.add('ok');
     b.disabled=true;
   });
-  document.getElementById('g-hint').innerHTML=`<span class="hint">こたえ: ${q.a} × ${q.b} = ${q.ans}</span>`;
+  document.getElementById('g-hint').innerHTML=`<span class="hint">🎵 ${goro(q.a,q.b)} ＝ ${q.ans}</span>`;
   sndNG();updHUD();updCombo();
-  setTimeout(()=>{G.qi++;nextQ();},1400);
+  setTimeout(()=>{G.qi++;nextQ();},1600);
 }
 
 function pick(val,btn){
@@ -465,7 +467,7 @@ function pick(val,btn){
     G.ng++;G.combo=0;
     setMastery(q.a,q.b,-18);
     G.wrongThis.push(`${q.a}×${q.b}=${q.ans}`);
-    document.getElementById('g-hint').innerHTML=`<span class="hint">こたえ: ${q.a} × ${q.b} = ${q.ans}</span>`;
+    document.getElementById('g-hint').innerHTML=`<span class="hint">🎵 ${goro(q.a,q.b)} ＝ ${q.ans}</span>`;
     sndNG();
   }
   updHUD();updCombo();
@@ -632,6 +634,19 @@ function house(x,y,wc,rc){return`<rect x="${x}" y="${y-28}" width="40" height="2
 function building(x,y){const ws=Array.from({length:9},(_,i)=>`<rect x="${x+4+(i%3)*11}" y="${y-55+Math.floor(i/3)*17}" width="8" height="10" fill="#fef08a" opacity=".8"/>`).join('');return`<rect x="${x}" y="${y-62}" width="36" height="62" fill="#94a3b8"/><rect x="${x}" y="${y-72}" width="36" height="12" fill="#64748b"/>${ws}`;}
 
 function resetConfirm(){if(confirm('きろくを ぜんぶ リセットしますか？')){S={totalPts:0,unlocked:[2],best:{},mastery:{}};save();renderTitle();}}
+
+/* ===== ごろ あわせ ===== */
+const GORO={
+  2:{1:'にいち が に',2:'ににん が し',3:'にさん が ろく',4:'にし が はち',5:'にご じゅう',6:'にろく じゅうに',7:'にしち じゅうし',8:'にはち じゅうろく',9:'にく じゅうはち'},
+  3:{1:'さんいち が さん',2:'さんに が ろく',3:'さざん が く',4:'さんし じゅうに',5:'さんご じゅうご',6:'さぶろく じゅうはち',7:'さんしち にじゅういち',8:'さんぱ にじゅうし',9:'さんく にじゅうしち'},
+  4:{1:'しいち が し',2:'しに が はち',3:'しさん じゅうに',4:'しし じゅうろく',5:'しご にじゅう',6:'しろく にじゅうし',7:'ししち にじゅうはち',8:'しは さんじゅうに',9:'しく さんじゅうろく'},
+  5:{1:'ごいち が ご',2:'ごに じゅう',3:'ごさん じゅうご',4:'ごし にじゅう',5:'ごご にじゅうご',6:'ごろく さんじゅう',7:'ごしち さんじゅうご',8:'ごは しじゅう',9:'ごく しじゅうご'},
+  6:{1:'ろくいち が ろく',2:'ろくに じゅうに',3:'ろくさん じゅうはち',4:'ろくし にじゅうし',5:'ろくご さんじゅう',6:'ろくろく さんじゅうろく',7:'ろくしち しじゅうに',8:'ろくは しじゅうはち',9:'ろくく ごじゅうし'},
+  7:{1:'しちいち が しち',2:'しちに じゅうし',3:'しちさん にじゅういち',4:'しちし にじゅうはち',5:'しちご さんじゅうご',6:'しちろく しじゅうに',7:'しちしち しじゅうく',8:'しちは ごじゅうろく',9:'しちく ろくじゅうさん'},
+  8:{1:'はちいち が はち',2:'はちに じゅうろく',3:'はちさん にじゅうし',4:'はちし さんじゅうに',5:'はちご しじゅう',6:'はちろく しじゅうはち',7:'はちしち ごじゅうろく',8:'はっぱ ろくじゅうし',9:'はちく しちじゅうに'},
+  9:{1:'くいち が く',2:'くに じゅうはち',3:'くさん にじゅうしち',4:'くし さんじゅうろく',5:'くご しじゅうご',6:'くろく ごじゅうし',7:'くしち ろくじゅうさん',8:'くは しちじゅうに',9:'くく はちじゅういち'},
+};
+function goro(a,b){return GORO[a]?.[b]||'';}
 
 /* ===== きどう ===== */
 load();renderTitle();
