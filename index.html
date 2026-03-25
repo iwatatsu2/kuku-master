@@ -145,11 +145,13 @@ body{font-family:'Hiragino Kaku Gothic Pro','メイリオ',sans-serif;background
 .rarity-SR{background:linear-gradient(90deg,#7c3aed,#ec4899,#f59e0b);color:#fff}
 
 /* ガチャ演出 */
-.gacha-flip-wrap{perspective:800px;display:inline-block}
-.gacha-flip-inner{transition:transform .6s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d;position:relative}
+.gacha-flip-wrap{perspective:1000px;display:flex;align-items:center;justify-content:center;padding:16px}
+.gacha-flip-inner{transition:transform .7s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d;position:relative;width:160px;height:240px}
 .gacha-flip-inner.flipped{transform:rotateY(180deg)}
-.gacha-face,.gacha-back{backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.gacha-back{position:absolute;inset:0;transform:rotateY(180deg);background:linear-gradient(135deg,#1e3a5f,#1a1a3e);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid #3b82f6}
+.gacha-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(0deg);display:flex;align-items:center;justify-content:center}
+.gacha-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(-180deg);background:linear-gradient(135deg,#1e3a5f,#1a1a3e);border-radius:16px;display:flex;align-items:center;justify-content:center;border:3px solid #3b82f6;box-shadow:0 0 20px rgba(59,130,246,.5)}
+.gacha-back-inner{text-align:center}
+.gacha-face .tcard{width:155px !important;animation:none !important}
 
 /* カードリビール */
 @keyframes cardDrop{0%{transform:translateY(-60px) scale(.7);opacity:0}60%{transform:translateY(8px) scale(1.05)}100%{transform:translateY(0) scale(1);opacity:1}}
@@ -1033,23 +1035,24 @@ function showGachaResult(cards){
     inner.className = 'gacha-flip-inner';
     inner.style.cssText = 'width:150px;height:220px';
 
-    // Back face (mystery card)
+    // Back face (mystery card) — shown FIRST
     const back = document.createElement('div');
     back.className = 'gacha-back';
-    back.innerHTML = '<div style="text-align:center"><div style="font-size:40px">🎴</div><div style="color:#93c5fd;font-size:12px;margin-top:4px">???</div></div>';
+    back.innerHTML = '<div class="gacha-back-inner"><div style="font-size:52px">🎴</div><div style="color:#93c5fd;font-size:14px;font-weight:900;margin-top:8px;letter-spacing:2px">？？？</div><div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:4px">タップでひらく</div></div>';
 
-    // Front face (actual card)
+    // Front face (actual card) — revealed after flip
     const front = document.createElement('div');
     front.className = 'gacha-face';
     front.appendChild(makeCardEl(c, true, 0));
 
-    inner.appendChild(back);
+    // back first, then front (back=-180deg so it faces away initially)
     inner.appendChild(front);
+    inner.appendChild(back);
     wrap.appendChild(inner);
     area.appendChild(wrap);
 
-    // Flip after delay
-    setTimeout(()=>{
+    // Tap to flip
+    back.onclick = () => {
       inner.classList.add('flipped');
       if(c.rarity==='SR'){
         setTimeout(()=>{sndLevelUp();confettiGacha();},400);
@@ -1058,7 +1061,17 @@ function showGachaResult(cards){
       } else {
         setTimeout(()=>sndOK(),300);
       }
-    }, 600);
+    };
+
+    // Auto flip after 1.5s
+    setTimeout(()=>{
+      if(!inner.classList.contains('flipped')){
+        inner.classList.add('flipped');
+        if(c.rarity==='SR') setTimeout(()=>{sndLevelUp();confettiGacha();},400);
+        else if(c.rarity==='R') setTimeout(()=>sndCombo(2),300);
+        else setTimeout(()=>sndOK(),300);
+      }
+    }, 1500);
 
   } else {
     // 10連: カードが順番に落ちてくる
